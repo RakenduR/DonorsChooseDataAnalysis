@@ -1,0 +1,39 @@
+1. Answer: 97.23
+
+select avg(students_reached) as AvgStudentsReached from projects;
+
+2. Answer: 81908
+
+select count(*) from projects where school_metro =  "";
+
+3. Answer: Yes, there is an upward trend in the number of projects except for 2014 which has data only till May.
+
+select count(*), extract(year from to_date(date_posted))  from projects group by extract(year from to_date(date_posted)) order by extract(year from to_date(date_posted));
+
+4. Answer: Supplies is the most requested with count of 229213
+
+select resource_type, count(*) as count from projects group by resource_type order by count desc;
+
+5. Answer: 5499
+
+select count(*) as count from projects where resource_type = 'Trips';
+
+6. Answer: New York with a Total Amount of 18.88 million
+
+select sum(total_price_excluding_optional_support) as TotalAmount, school_city from projects group by school_city order by TotalAmount desc limit 1;
+
+7. Answer: 57.74%
+
+select count(*)/(select count(poverty_level) from projects)* 100, poverty_level from projects where poverty_level = 'highest poverty' group by poverty_level ; 
+
+8. Answer: Chicago with a count of 26186
+
+select count(*) as TotalCount, school_city from projects where poverty_level = 'highest poverty' group by school_city order by TotalCount desc limit 1;
+
+9. Answer: Chicago, 8.699 million
+
+select school_city, sum(total_price_excluding_optional_support) as TotalAmount from projects where projectid in (select projectid from outcomes where fully_funded = 't') group by school_city order by TotalAmount desc limit 1; 
+
+10. Answer: yes, there is an upward trend in the number of projects funded yearly.
+
+select count(*), extract(year from to_date(date_posted)) from projects join outcomes on projects.projectid = outcomes.projectid where fully_funded = 't' group by extract(year from to_date(date_posted)) order by extract(year from to_date(date_posted)) ;

@@ -1,0 +1,42 @@
+http://ec2-13-212-101-145.ap-southeast-1.compute.amazonaws.com:8888
+
+
+aws s3 cp s3://smu.isss612.apr2022.rakendur/outcomes.csv outcomes.csv
+
+hdfs dfs -put outcomes.csv /user/rakendu
+
+CREATE EXTERNAL TABLE IF NOT EXISTS projects (projectid string, teacher_acctid string, schoolid string, school_ncesid int, school_latitude double, school_longitude double, school_city string, school_state string ,school_zip int ,school_metro string, school_district string, school_county string, school_charter string, school_magnet string, school_year_round string,school_nlns string, school_kipp string, school_charter_ready_promise string, teacher_prefix string, teacher_teach_for_america string, teacher_ny_teaching_fellow string, primary_focus_subject string, primary_focus_area string, secondary_focus_subject string, secondary_focus_area string, resource_type string, poverty_level string, grade_level string, fulfillment_labor_materials double, total_price_excluding_optional_support double, total_price_including_optional_support double, students_reached double, eligible_double_your_impact_match double, eligible_almost_home_match double, date_posted string) row format delimited fields terminated by ',' stored as textfile location '/user/rakendu/projects/' tblproperties ("skip.header.line.count"="1");
+
+
+CREATE EXTERNAL TABLE IF NOT EXISTS outcomes (projectid string, is_exciting string, at_least_1_teacher_referred_donor string, fully_funded string, at_least_1_green_donation string, great_chat string, three_or_more_non_teacher_referred_donors string, one_non_teacher_referred_donor_giving_100_plus string, donation_from_thoughtful_donor string, great_messages_proportion double, teacher_referred_count double, non_teacher_referred_count double)  row format delimited fields terminated by ',' stored as textfile location '/user/rakendu/outcomes/' tblproperties ("skip.header.line.count"="1");
+
+
+drop table projects;
+
+CREATE EXTERNAL TABLE IF NOT EXISTS projects (projectid string, teacher_acctid string, schoolid string, school_ncesid int, school_latitude double, school_longitude double, school_city string, school_state string ,school_zip int ,school_metro string, school_district string, school_county string, school_charter string, school_magnet string, school_year_round string,school_nlns string, school_kipp string, school_charter_ready_promise string, teacher_prefix string, teacher_teach_for_america string, teacher_ny_teaching_fellow string, primary_focus_subject string, primary_focus_area string, secondary_focus_subject string, secondary_focus_area string, resource_type string, poverty_level string, grade_level string, fulfillment_labor_materials double, total_price_excluding_optional_support double, total_price_including_optional_support double, students_reached double, eligible_double_your_impact_match double, eligible_almost_home_match double, date_posted string) row format delimited fields terminated by ',' stored as textfile location '/user/rakendu/projects/' tblproperties ("skip.header.line.count"="1");
+
+select avg(students_reached) as AvgStudentsReached from projects;
+
+select count(*) from projects where school_metro is null;
+
+select count(*), extract(year from to_date(date_posted))  from projects group by extract(year from to_date(date_posted)) order by extract(year from to_date(date_posted));
+
+select resource_type, count(*) as count from projects group by resource_type order by count desc;
+
+select count(*) as count from projects where resource_type = 'Trips';
+
+select sum(total_price_excluding_optional_support) as TotalAmount, school_city from projects group by school_city order by TotalAmount desc limit 1;
+
+select count(*)/(select count(poverty_level) from projects)* 100, poverty_level from projects where poverty_level = 'highest poverty' group by poverty_level ; 
+
+select count(*) as TotalCount, school_city from projects where poverty_level = 'highest poverty' group by school_city order by TotalCount desc limit 1;
+
+CREATE EXTERNAL TABLE IF NOT EXISTS outcomes (projectid string, is_exciting string, at_least_1_teacher_referred_donor string, fully_funded string, at_least_1_green_donation string, great_chat string, three_or_more_non_teacher_referred_donors string, one_non_teacher_referred_donor_giving_100_plus string, donation_from_thoughtful_donor string, great_messages_proportion double, teacher_referred_count double, non_teacher_referred_count double)  row format delimited fields terminated by ',' stored as textfile location '/user/rakendu/outcomes/' tblproperties ("skip.header.line.count"="1");
+
+select count(*) from outcomes where fully_funded = 't';
+
+select school_city, sum(total_price_excluding_optional_support) as TotalAmount from projects where projectid in (select projectid from outcomes where fully_funded = 't') group by school_city order by TotalAmount desc limit 1; 
+
+select count(*), extract(year from to_date(date_posted)) from projects join outcomes on projects.projectid = outcomes.projectid where fully_funded = 't' group by extract(year from to_date(date_posted)) order by extract(year from to_date(date_posted)) ;
+
+select count(*) as TotalFundedProjects, extract(year from to_date(date_posted)) as Year from projects where projectid in (select projectid from outcomes where fully_funded = 't') group by extract(year from to_date(date_posted)) order by extract(year from to_date(date_posted));
